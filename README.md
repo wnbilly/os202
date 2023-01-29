@@ -1,2 +1,2 @@
 # os202
-Repository for the OS202 couirse at ENSTA Paris.
+Repository for the OS202 course at ENSTA Paris.

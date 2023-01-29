@@ -1,10 +1,5 @@
 
-# TD1
-
-`pandoc -s --toc README.md --css=./github-pandoc.css -o README.html`
-
-
-
+# Rendu TD1
 
 
 ## lscpu
@@ -40,18 +35,18 @@ Nœud NUMA 0 de processeur(s) :          0-7
 
 
 
-## Produit matrice-matrice
+## Ex 1 - Produit matrice-matrice
 
 
 
 ### Permutation des boucles
 
-*Expliquer comment est compilé le code (ligne de make ou de gcc) : on aura besoin de savoir l'optim, les paramètres, etc.
+Ma ligne de commande de compilatio nest la suivante :
 
 `g++ -o TestProduct.exe -O2 TestProductMatrix.cpp ProdMatMat.cpp Matrix.cpp`
 
 
-Q1. 
+### Mesure du temps de calcul pour n=1024
 
 n   |  time   | MFlops  |
 ----|---------|---------|
@@ -59,6 +54,8 @@ n   |  time   | MFlops  |
 1024| 2.38371 | 900.901 |
 1025| 1.28071 | 1681.7  |
 
+
+### Première optimisation par permutation de boucles
 
   ordre           | time    | MFlops (n=1024) | MFlops(n=2048) 
 ------------------|---------|-----------------|----------------
@@ -178,13 +175,32 @@ Speed-up       |         | 1.17    | 1.13           | 1.33           | 1.38     
 
 Le produit en utilisant blas est beaucoup plus rapide.
 
-# Tips 
 
-```
-	env 
-	OMP_NUM_THREADS=4 ./produitMatriceMatrice.exe
-```
+# 2 - parallélisation MPI
 
-```
-    $ for i in $(seq 1 4); do elap=$(OMP_NUM_THREADS=$i ./TestProductOmp.exe|grep "Temps CPU"|cut -d " " -f 7); echo -e "$i\t$elap"; done > timers.out
-```
+## 2.1 - Circulation d'un jeton
+
+*cf. ex21.py*
+
+
+## 2.2 - Calcul très approché de pi
+
+*cf. ex22.py et ex22_mpi.py*
+
+J'obtenais de meilleurs résultats en utilisant une parallélisation via 4 processus.
+
+Ma commande d'exécution était donc `mpiexec -n 4 python3 ex22_mpi.py 10000`
+
+Voici les résultats obtenus en temps d'exécution en secondes en fonction du nombre de points :
+
+  MPI    |    10⁴    |    10⁵    |    10⁶    |    10⁷    |
+---------|-----------|-----------|-----------|-----------|
+  Non    |  0.0135   |  0.1346   | 1.3036    | 12.901    |
+  Oui    |  0.0276   |  0.0341   | 0.3600    | 3.6992    |
+ Speedup |  0.49     |  3.95     | 3.62      | 3.43
+  
+  
+On remarque déjà que le temps d'exécution semble linéaire par rapport au nombre de points, ce qui est cohérent avec la structure de boucles simples du code dans le cas sans mpi.
+
+Hormis pour le cas avec 10⁴ points, on trouve un speed up s'approchant de 4, ce qui est cohérent car j'ai utilisé 4 threads pour réaliser le calcul avec MPI contre 1 sans MPI. Le speedup n'est pas de 4 car d'autres programmes tournent sur mon PC et requièrent du temps de calcul.
+

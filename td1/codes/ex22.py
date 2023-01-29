@@ -32,4 +32,4 @@ for pt in points:
 
 end = time.time()
 print("Estimation de pi à",nb_pts,"points :", area_estimation*factor )
-print("Temps d'exécution :", end-start, 'seconds')
+print(f"Temps d'exécution : {end-start:.4f} seconds")

@@ -44,4 +44,4 @@ if rank == 0:
     pi_estimation = total_area_estimation * 4/nb_pts
     end = time.time()
     print("Estimation de pi à",nb_pts,"points :", pi_estimation)
-    print("Temps d'exécution :", end-start, 'seconds')
+    print(f"Temps d'exécution : {end-start:.4f} seconds")

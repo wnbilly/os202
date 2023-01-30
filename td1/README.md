@@ -2,7 +2,7 @@
 # Rendu TD1
 
 
-## lscpu
+## -lscpu
 
 ```
 Architecture :                          x86_64
@@ -187,6 +187,8 @@ Le produit en utilisant blas est beaucoup plus rapide.
 
 *cf. ex22.py et ex22_mpi.py*
 
+Pour ex22.py et ex22_mpi.py, il faut préciser le nombre de points en argument lors du lancement dans la ligne de commande.
+
 J'obtenais de meilleurs résultats en utilisant une parallélisation via 4 processus.
 
 Ma commande d'exécution était donc `mpiexec -n 4 python3 ex22_mpi.py 10000`
@@ -199,7 +201,8 @@ Voici les résultats obtenus en temps d'exécution en secondes en fonction du no
   Oui    |  0.0276   |  0.0341   | 0.3600    | 3.6992    |
  Speedup |  0.49     |  3.95     | 3.62      | 3.43
   
-  
+ 
+ 
 On remarque déjà que le temps d'exécution semble linéaire par rapport au nombre de points, ce qui est cohérent avec la structure de boucles simples du code dans le cas sans mpi.
 
 Hormis pour le cas avec 10⁴ points, on trouve un speed up s'approchant de 4, ce qui est cohérent car j'ai utilisé 4 threads pour réaliser le calcul avec MPI contre 1 sans MPI. Le speedup n'est pas de 4 car d'autres programmes tournent sur mon PC et requièrent du temps de calcul.

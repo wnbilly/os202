@@ -67,9 +67,9 @@ j,k,i             | 0.68483 |     3135.79     |    2604.57
 k,j,i             | 0.75663 |     2838.2      |    1772.93
 
 
-*Discussion des résultats*
 
-j,k,i meilleure boucle
+On trouve que j,k,i est le meilleur ordre pour les boucles talonnée de près par k,j,i. Cela est logique car la mémoire est chargée en cache de façon contigüe et que C++ stocke les matrices suivant les lignes. 
+Ainsi, avoir i en dernière boucle permet d'itérer sur plusieurs valeurs de suite dans les lignes de A (car i est la valeur d'itération sur les lignes de A) sans avoir à charger de la mémoire en cache en provenance de la mémoire ram.
 
 
 ### OMP sur la meilleure boucle 
@@ -90,7 +90,8 @@ do
 	done
 done
 ```
-avec "pragma omp parallel for sur les 3 boucles
+
+avec "pragma omp parallel for sur les 3 boucles, ce qui s'est révélé inefficace, probablement car tous les processus ont un même modèle d'accès mémoire, ce qui rend la parallélisation peu efficace.
   OMP_NUM   | MFlops  | MFlops(n=2048) | MFlops(n=512)  | MFlops(n=4096)
 ------------|---------|----------------|----------------|---------------
 1           |  1111   | 1479           | 693            | 1897
@@ -102,7 +103,7 @@ avec "pragma omp parallel for sur les 3 boucles
 7           |  3493   | 4761           | 2061           | 6036
 8           |  3856   | 5337           | 2375           | 5969
 
-avec "pragma omp parallel for sur la 1e boucle
+avec "pragma omp parallel for sur la 1e boucle uniquement
   OMP_NUM   | MFlops  | MFlops(n=2048) | MFlops(n=512)  | MFlops(n=4096) |
 ------------|---------|----------------|----------------|----------------|
 1           |  3195   | 2851           | 2914           | 2769           |
@@ -119,20 +120,22 @@ avec "pragma omp parallel for sur la 1e boucle
 ------------|---------|----------------|----------------|---------------
  sans omp   |  3157   | 2897           | 3384           | 2748
  
-Cela permet de calculer le speedup
+Ce dernier tableau permet de calculer le speedup.
  
-  OMP_NUM   | speedup | speedup(n=2048) | speedup(n=512) | speedup(n=4096)| speedup moyen |
-------------|---------|-----------------|----------------|----------------|---------------|
-1           |  1.01   | 0.98            | 0.86           | 1              | 0.96          |
-2           |  1.87   | 1.84            | 1.64           | 1.78           | 1.78          |
-3           |  2.41   | 2.49            | 2.06           | 2.32           | 2.32          |
-4           |  2.36   | 2.59            | 2.25           | 2.68           | 2.47          |
-5           |  2.32   | 2.53            | 2.41           | 2.30           | 2.39          |
-6           |  2.91   | 2.27            | 2.60           | 2.21           | 2.50          |
-7           |  3.12   | 2.94            | 2.30           | 2.76           | 2.78          |
-8           |  2.86   | 3.40            | 1.74           | 2.67           | 2.67          |
+OMP_NUM_THREADS  | speedup | speedup(n=2048) | speedup(n=512) | speedup(n=4096)| speedup moyen |
+-----------------|---------|-----------------|----------------|----------------|---------------|
+1                |  1.01   | 0.98            | 0.86           | 1              | 0.96          |
+2                |  1.87   | 1.84            | 1.64           | 1.78           | 1.78          |
+3                |  2.41   | 2.49            | 2.06           | 2.32           | 2.32          |
+4                |  2.36   | 2.59            | 2.25           | 2.68           | 2.47          |
+5                |  2.32   | 2.53            | 2.41           | 2.30           | 2.39          |
+6                |  2.91   | 2.27            | 2.60           | 2.21           | 2.50          |
+7                |  3.12   | 2.94            | 2.30           | 2.76           | 2.78          |
+8                |  2.86   | 3.40            | 1.74           | 2.67           | 2.67          |
 
+On remarque que globalement plus on augmente le nombre de threads alloués à cette tâche, plus les performances augmentent. Cela n'est plus vrai après OMP_NUM_THREADs = 7 probablement car d'autres programmes tournent déjà en parallèle sur le PC et nécessitent également du temps d'exécution.
 
+De plus, entre OMP_NUM_THREADS=1 et OMP_NUM_THREADS=X, on ne remarque pas un speedup de X car la multiplication de matrices requiert beaucoup d'appel à la mémoire hors cache. Ceci est cohérent vaec la loi d'Amdahl.
 
 ### Produit par blocs
 
@@ -151,6 +154,9 @@ origine(=max)     |  3157   | 2897           | 3384           | 2748
 1024              |  2644   | 2416           | 2835           | 2269
 
 
+Je pense devoir observer une amélioration en utilisant le produit par blocs mais la version la plus efficace dans mon cas est la version scalaire.
+
+Cependant, je pense que l'optimum devrait se trouver lorsque le cache (à déterminer lequel) peut tenir entièrement une ligne de A.
 
 
 ### Bloc + OMP
@@ -173,10 +179,11 @@ Speed-up       |         | 1.17    | 1.13           | 1.33           | 1.38     
 --------|---------|----------------|----------------|---------------
   blas  |  14580  | 15298          | 8985           | 15571
 
+
 Le produit en utilisant blas est beaucoup plus rapide.
 
 
-# 2 - parallélisation MPI
+# 2 - Parallélisation MPI
 
 ## 2.1 - Circulation d'un jeton
 

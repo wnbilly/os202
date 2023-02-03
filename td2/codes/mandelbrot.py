@@ -59,7 +59,6 @@ width, height = 800, 600
 # Répartition des lignes par processus
 pcs_height = height // size
 
-
 scaleX = 3./width
 scaleY = 2.25/height
 convergence = np.empty((width,pcs_height),dtype=np.double)
@@ -69,7 +68,6 @@ deb = time()
 range_beg = rank*pcs_height
 range_end = (rank+1)*pcs_height
 
-#Attention : y est indice des lignes
 for y in range(range_beg, range_end):
     for x in range(width):
         c = complex(-2. + scaleX*x, -1.125 + scaleY * (y))
@@ -77,21 +75,25 @@ for y in range(range_beg, range_end):
 fin = time()
 print(f"{rank} - Temps du calcul de l'ensemble de Mandelbrot via répartition uniforme des lignes : {fin-deb}\n shape : {convergence.shape}")
 
-image = Image.fromarray(np.uint8(matplotlib.cm.plasma(convergence.T)*255))
-image.show()
+# image = Image.fromarray(np.uint8(matplotlib.cm.plasma(convergence.T)*255))
+# image.show()
 
 total_convergence = None
 if rank == 0 : 
-    total_convergence = np.empty((width,height),dtype=np.double)
+    total_convergence = np.empty((size, width, pcs_height),dtype=np.double)
 
 comm.Gather(sendbuf=convergence, recvbuf=total_convergence, root=0)
 
 # Constitution de l'image résultante :
 if rank == 0 :
-    print(total_convergence.shape)
     deb = time()
+    image = np.empty((width, height),dtype=np.double)
+
+    # Recreate image as Gather returns garbage
+    for i in range(size):
+        image[:, i*pcs_height:(i+1)*pcs_height] = total_convergence[i, :, :]
     #ATTENTION : Convergence.T
-    image = Image.fromarray(np.uint8(matplotlib.cm.plasma(total_convergence.T)*255))
+    image = Image.fromarray(np.uint8(matplotlib.cm.plasma(image.T)*255))
     fin = time()
     print(f"Temps de constitution de l'image : {fin-deb}")
     image.show()
